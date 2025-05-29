@@ -1,5 +1,5 @@
 - name: catalogue-playbook
-  hosts: backend
+  hosts: catalogue
   become: yes
   tasks:
   - name: disable existing nodejs module stream
