@@ -1,0 +1,21 @@
+- name: rabbitmq-playbook
+  hosts: rabbitmq
+  become: yes
+  tasks:
+  - name: set-up the repo for rabbitmq installation
+    copy:
+      src: rabbitmq.repo
+      dest: /etc/yum.repos.d/rabbitmq.repo      
+  - name: install rabbitmq-server
+    dnf:
+      name: rabbitmq-server
+      state: installed
+  - name: start and enable rabbitmq-server
+    service:
+      name: rabbitmq-server
+      state: started
+      enabled: yes
+  - name: create an user
+    command: rabbitmqctl add_user roboshop RoboShop@1
+  - name: add permissions
+    command: rabbitmqctl set_permissions -p / roboshop ".*" ".*" ".*"
