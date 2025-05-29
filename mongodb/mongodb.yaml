@@ -1,0 +1,26 @@
+- name: mongodb-playboook
+  hosts: mongodb
+  become: yes
+  tasks:
+  - name: setup the mongodb repo file
+    copy:
+      src: mongo.repo
+      dest: /etc/yum.repos.d/mongo.repo
+  - name: install mongodb-org
+    dnf:
+      name: mongodb-org
+      state: installed
+  - name: start and enable mongodb
+    service:
+      name: mongod
+      enabled: yes
+      state: started
+  - name: edit the /etc/mongod.conf to enable the remote login
+    replace: 
+      path: /etc/mongod.conf
+      regexp: '127.0.0.1'
+      replace: '0.0.0.0'
+  - name: finally restart mongodb service
+    service:
+      name: mongod
+      state: restarted
