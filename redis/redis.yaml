@@ -1,0 +1,31 @@
+- name: redis-playbook
+  hosts: redis
+  become: yes
+  tasks:
+  - name: disable redis module
+    command: dnf module disable redis -y
+  - name: enable redis:7 module
+    command: dnf module enable redis:7 -y
+  - name: install redis
+    dnf:
+      name: redis
+      state: installed
+  - name: start and enable redis service
+    service:
+      name: redis
+      state: started
+      enabled: yes
+  - name: edit redis config to enable the remote connections
+    replace:
+      path: /etc/redis/redis.conf
+      regexp: '127.0.0.1'
+      replace: '0.0.0.0'
+  - name: edit redis config for unsecure connection
+    replace:
+      path: /etc/redis/redis.conf
+      regexp: 'protected-mode yes'
+      replace: 'protected-mode no'
+  - name: restart redis service
+    service:
+      name: redis
+      state: restarted
