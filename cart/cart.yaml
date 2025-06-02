@@ -1,0 +1,47 @@
+- name: cart-playbook
+  hosts: cart
+  become: yes
+  tasks:
+  - name: disable existing nodejs module stream
+    command: dnf module disable nodejs -y
+  - name: enable nodejs:20 module stream 
+    command: dnf module enable nodejs:20 -y
+  - name: install nodejs
+    dnf:
+      name: nodejs
+      state: installed
+  - name: create roboshop user
+    user:
+      name: roboshop
+      home: /app
+      shell: /sbin/nologin
+      system: yes
+      comment: "roboshop user created"
+  - name: create /app folder
+    file:
+      path: /app
+      state: directory
+      mode: '0755'
+  - name: download cart-v3
+    get_url:
+      url: "https://roboshop-artifacts.s3.amazonaws.com/cart-v3.zip"
+      dest: /tmp/cart.zip
+      mode: '0644'
+  - name: extract /tmp/cart.zip into /app
+    ansible.builtin.unarchive:
+      src: /tmp/cart.zip
+      dest: /app
+      remote_src: yes
+  - name: update the package.json after unzip
+    community.general.npm: 
+      path: /app
+  - name: create systemd cart service 
+    copy:
+      src: cart.service
+      dest: /etc/systemd/system/cart.service
+    notify: reload-cart-service
+  handlers:
+    - name: reload-cart-service
+      service:
+        name: cart
+        state: restarted
